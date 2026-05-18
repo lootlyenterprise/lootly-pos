@@ -251,16 +251,16 @@ async function loadFromSheets() {
     await api('init');            // ensure headers exist
     const all = await api('getAll');
     DB.products     = (all.products     || []);
-    DB.transactions = (all.transactions || []).map(t=>({.t,
+    DB.transactions = (all.transactions || []).map(t=>({...t,
       date: toDateStr(t.date),
       time: normaliseTime(t.time)
     }));
-    DB.expenses  = (all.expenses  || []).map(e=>({.e, date:toDateStr(e.date)}));
-    DB.movements = (all.movements || []).map(m=>({.m,
+    DB.expenses  = (all.expenses  || []).map(e=>({...e, date:toDateStr(e.date)}));
+    DB.movements = (all.movements || []).map(m=>({...m,
       date: toDateStr(m.date),
       time: normaliseTime(m.time)
     }));
-    DB.priceChanges = (all.priceChanges || []).map(pc=>({.pc,
+    DB.priceChanges = (all.priceChanges || []).map(pc=>({...pc,
       date: toDateStr(pc.date),
       time: normaliseTime(pc.time)
     }));
@@ -448,7 +448,7 @@ function pgDash(c){
  const low=DB.products.filter(p=>p.stock<=5);
  const wDays=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);wDays.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));}
  const wSales=wDays.map(d=>({d,rev:DB.transactions.filter(t=>t.date===d).reduce((s,t)=>s+t.total,0)}));
- const maxRev=Math.max(.wSales.map(x=>x.rev),1);
+ const maxRev=Math.max(...wSales.map(x=>x.rev),1);
  const top=getTopProds(7).slice(0,5);
  c.innerHTML=`<div class="content">
  ${low.length?`<div class="low-alert">Low stock: ${low.map(p=>p.name).join(', ')}</div>`:''}
@@ -872,7 +872,7 @@ window.addProduct=function(){
   });
  },50);
  showModal('Add New Product',`
- <div class="form-row"><div class="form-group"><label class="form-label">Product Name</label><input class="form-input" id="fn" placeholder="e.g. LEGO Technic" list="ndl"/><datalist id="ndl">${names..map(x=>`<option value="${x}"/>`).join('')}</datalist></div>
+ <div class="form-row"><div class="form-group"><label class="form-label">Product Name</label><input class="form-input" id="fn" placeholder="e.g. LEGO Technic" list="ndl"/><datalist id="ndl">${names.map(x=>`<option value="${x}"/>`).join('')}</datalist></div>
  <div class="form-group"><label class="form-label">SKU (DC-TOM-CIVICR-RED-9932)</label><input class="form-input" id="fsku" placeholder="e.g. SKU-013"/></div></div>
  <div class="form-row"><div class="form-group"><label class="form-label">Brand</label><input class="form-input" id="fbrand" placeholder="e.g. LEGO" list="bdl"/><datalist id="bdl">${brands.map(x=>`<option value="${x}"/>`).join('')}</datalist></div>
  <div class="form-group"><label class="form-label">Make</label><input class="form-input" id="fmake" placeholder="e.g. LEGO Group" list="mdl"/><datalist id="mdl">${makes.map(x=>`<option value="${x}"/>`).join('')}</datalist></div></div>
@@ -1178,7 +1178,7 @@ function pgExp(c){
  <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th></th></tr></thead>
  <tbody>
  ${DB.expenses.length===0?`<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">No expenses yet</td></tr>`:''}
- ${[.DB.expenses].sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<tr>
+ ${[...DB.expenses].sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`<tr>
  <td>${fmtDate(e.date)}</td>
  <td><span class="badge badge-amber">${e.category}</span></td>
  <td>${e.desc}</td>
@@ -1375,7 +1375,7 @@ function pgDB(c){
   }
 
   else if(dbTab==='expenses'){
-   let rows=[.DB.expenses].sort((a,b)=>b.date.localeCompare(a.date));
+   let rows=[...DB.expenses].sort((a,b)=>b.date.localeCompare(a.date));
    if(s) rows=rows.filter(e=>
     (e.category||'').toLowerCase().includes(s)||
     (e.desc||'').toLowerCase().includes(s)||
@@ -1401,7 +1401,7 @@ function pgDB(c){
   }
 
   else if(dbTab==='movements'){
-   let rows=[.DB.movements].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+   let rows=[...DB.movements].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
    if(s) rows=rows.filter(m=>
     (m.sku||'').toLowerCase().includes(s)||
     (m.productName||'').toLowerCase().includes(s)||
